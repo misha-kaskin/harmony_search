@@ -183,12 +183,18 @@ public class Main {
 
             Model m = harmonySearch.search();
 
-            for (int i = 0; i < vectorCount; i++) {
+            for (int i = 0; i < m.vectorX.length; i++) {
                 int x = (int) m.getVectorX()[i];
                 int y = (int) m.getVectorY()[i];
 
-                drawCircle(x, y);
+                drawCircle(x, y, Color.WHITE);
             }
+
+            if (m.isDeleted()) {
+                drawCircle((int) m.getDelX(), (int) m.getDelY(), Color.GRAY);
+            }
+
+            drawCircle((int) m.getX(), (int) m.getY(), Color.BLACK);
 
             imgLabel.setIcon(new ImageIcon(img1));
             imgPanel.updateUI();
@@ -224,7 +230,7 @@ public class Main {
         return IMG_HEIGHT - 1 - (int) (tmp / deltaY);
     }
 
-    static void drawCircle(int x, int y) {
+    static void drawCircle(int x, int y, Color c) {
         x = mapI(x);
         y = mapJ(y);
         for (int i = x - RADIUS; i <= x + RADIUS; i++) {
@@ -235,7 +241,7 @@ public class Main {
 
                 double dist = sqrt(pow(x - i, 2) + pow(y - j, 2));
                 if (dist < RADIUS - 1) {
-                    img1.setRGB(i, j, Color.WHITE.getRGB());
+                    img1.setRGB(i, j, c.getRGB());
                 } else if (dist < RADIUS + 1) {
                     img1.setRGB(i, j, Color.GRAY.getRGB());
                 }

@@ -1,6 +1,8 @@
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
+import java.util.Arrays;
+
 public class HarmonySearch {
     double[] vectorX;
     double[] vectorY;
@@ -95,13 +97,36 @@ public class HarmonySearch {
             }
         }
 
+        double[] vx;
+        double[] vy;
+        Model m;
+
         if (vectorZ[imax] > z) {
+            vx = new double[vectorX.length - 1];
+            vy = new double[vectorY.length - 1];
+
+            for (int i = 0; i < imax; i++) {
+                vx[i] = vectorX[i];
+                vy[i] = vectorY[i];
+            }
+
+            for (int i = imax + 1; i < vectorX.length; i++) {
+                vx[i - 1] = vectorX[i];
+                vy[i - 1] = vectorY[i];
+            }
+
+            m = new Model(vx, vy, x, y, true, vectorX[imax], vectorY[imax]);
+
             vectorZ[imax] = z;
             vectorX[imax] = x;
             vectorY[imax] = y;
+        } else {
+            vx = Arrays.copyOf(vectorX, vectorX.length);
+            vy = Arrays.copyOf(vectorY, vectorY.length);
+            m = new Model(vx, vy, x, y, false, 0, 0);
         }
 
-        return new Model(vectorX, vectorY);
+        return m;
     }
 
     int numOfVector() {
