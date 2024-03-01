@@ -41,9 +41,11 @@ public class Main {
     static double chooseProbability = 0.5;
     static double modProbability = 0.5;
     static double delta = 1;
+    static int stepNumber = 30;
     static HarmonySearch harmonySearch;
     static BufferedImage img;
     static BufferedImage img1;
+    static int iterationCount = 0;
 
     public static void main(String[] args) {
         Expression e = new ExpressionBuilder(FUNCTION)
@@ -130,7 +132,7 @@ public class Main {
         jFrame.add(jPanel, BorderLayout.NORTH);
 
         JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new GridLayout(5, 2));
+        rightPanel.setLayout(new GridLayout(6, 2));
         JLabel vectorCountLabel = new JLabel("Кол-во векторов");
         SpinnerNumberModel snmVector = new SpinnerNumberModel(5, 1, 1000, 1);
         JSpinner vectorSpinner = new JSpinner(snmVector);
@@ -154,9 +156,16 @@ public class Main {
         JLabel safeLabel = new JLabel("Сохр");
         JButton safeButton = new JButton("Сохр");
         safeButton.addActionListener(el -> {
+            iterationCount = 0;
             harmonySearch = new HarmonySearch(vectorCount, MIN_X, MIN_Y, MAX_X, MAX_Y, chooseProbability, modProbability, delta, FUNCTION);
-            img1 = img;
+            imgLabel.setIcon(new ImageIcon(img));
+            imgPanel.updateUI();
         });
+
+        JLabel stepNumberLabel = new JLabel("Кол-во итераций");
+        SpinnerNumberModel snmStepNumber = new SpinnerNumberModel(30, 1, 1000, 1);
+        JSpinner stepNumberSpinner = new JSpinner(snmStepNumber);
+        stepNumberSpinner.addChangeListener(el -> stepNumber = (int) stepNumberSpinner.getValue());
 
         rightPanel.add(vectorCountLabel);
         rightPanel.add(vectorSpinner);
@@ -166,6 +175,8 @@ public class Main {
         rightPanel.add(modSpinner);
         rightPanel.add(deltaLabel);
         rightPanel.add(deltaSpinner);
+        rightPanel.add(stepNumberLabel);
+        rightPanel.add(stepNumberSpinner);
         rightPanel.add(safeLabel);
         rightPanel.add(safeButton);
 
@@ -175,13 +186,55 @@ public class Main {
         JButton calcButton = new JButton("Вычислить шаг");
         calcButton.addActionListener(el -> {
             img1 = new BufferedImage(IMG_WIDTH, IMG_HEIGHT, IMG_TYPE);
+
             for (int i = 0; i < IMG_WIDTH; i++) {
                 for (int j = 0; j < IMG_HEIGHT; j++) {
                     img1.setRGB(i, j, img.getRGB(i, j));
                 }
             }
 
+            if (iterationCount == stepNumber - 1) {
+                iterationCount++;
+                Model m = harmonySearch.search();
+                int minIdx = 0;
+                for (int i = 0; i < m.vectorX.length; i++) {
+                    int x1tmp = (int) m.vectorX[i];
+                    int y1tmp = (int) m.vectorY[i];
+                    int x2tmp = (int) m.vectorX[minIdx];
+                    int y2tmp = (int) m.vectorY[minIdx];
+
+                    double val1 = e.setVariable("x", x1tmp).setVariable("y", y1tmp).evaluate();
+                    double val2 = e.setVariable("x", x2tmp).setVariable("y", y2tmp).evaluate();
+
+                    if (val1 < val2) {
+                        minIdx = i;
+                    }
+                }
+
+                int xTmp = (int) m.getX();
+                int yTmp = (int) m.getY();
+
+                double val1 = e.setVariable("x", xTmp).setVariable("y", yTmp).evaluate();
+                double val2 = e.setVariable("x", m.getVectorX()[minIdx])
+                        .setVariable("y", m.getVectorY()[minIdx])
+                        .evaluate();
+
+                if (val1 < val2) {
+                    drawCircle(xTmp, yTmp, Color.WHITE);
+                } else {
+                    drawCircle((int) m.getVectorX()[minIdx], (int) m.getVectorY()[minIdx], Color.WHITE);
+                }
+
+                imgLabel.setIcon(new ImageIcon(img1));
+                imgPanel.updateUI();
+
+                return;
+            } else if (iterationCount > stepNumber - 1) {
+                return;
+            }
+
             Model m = harmonySearch.search();
+            iterationCount++;
 
             for (int i = 0; i < m.vectorX.length; i++) {
                 int x = (int) m.getVectorX()[i];
@@ -233,17 +286,18 @@ public class Main {
     static void drawCircle(int x, int y, Color c) {
         x = mapI(x);
         y = mapJ(y);
+
         for (int i = x - RADIUS; i <= x + RADIUS; i++) {
-            i = min(IMG_WIDTH - 1, max(0, i));
+            int k = min(IMG_WIDTH - 1, max(0, i));
 
             for (int j = y - RADIUS; j <= y + RADIUS; j++) {
-                j = min(IMG_HEIGHT - 1, max(0, j));
+                int l = min(IMG_HEIGHT - 1, max(0, j));
 
-                double dist = sqrt(pow(x - i, 2) + pow(y - j, 2));
+                double dist = sqrt(pow(x - k, 2) + pow(y - l, 2));
                 if (dist < RADIUS - 1) {
-                    img1.setRGB(i, j, c.getRGB());
+                    img1.setRGB(k, l, c.getRGB());
                 } else if (dist < RADIUS + 1) {
-                    img1.setRGB(i, j, Color.GRAY.getRGB());
+                    img1.setRGB(k, l, Color.GRAY.getRGB());
                 }
             }
         }

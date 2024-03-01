@@ -3,6 +3,8 @@ import net.objecthunter.exp4j.ExpressionBuilder;
 
 import java.util.Arrays;
 
+import static java.lang.Math.*;
+
 public class HarmonySearch {
     double[] vectorX;
     double[] vectorY;
@@ -52,29 +54,31 @@ public class HarmonySearch {
         double x;
         double y;
 
-        double eps = Math.random();
+        double eps = random();
 
         if (eps < chooseProbability) {
             x = vectorX[numOfVector()];
-            eps = Math.random();
+            eps = random();
 
             if (eps < modProbability) {
                 double ksi = RandGenerator.generate(-1, 1);
                 x += ksi * delta;
+                x = max(minX, min(x, maxX));
             }
         } else {
             x = RandGenerator.generate(minX, maxX);
         }
 
-        eps = Math.random();
+        eps = random();
 
         if (eps < chooseProbability) {
             y = vectorY[numOfVector()];
-            eps = Math.random();
+            eps = random();
 
             if (eps < modProbability) {
                 double ksi = RandGenerator.generate(-1, 1);
                 y += ksi * delta;
+                y = max(minY, min(y, maxY));
             }
         } else {
             y = RandGenerator.generate(minY, maxY);
@@ -132,9 +136,9 @@ public class HarmonySearch {
     int numOfVector() {
         double step = (double) 1 / size;
 
-        double eps = Math.random();
+        double eps = random();
         int num = (int) (eps / step);
-        num = Math.min(size - 1, num);
+        num = min(size - 1, num);
 
         return num;
     }
